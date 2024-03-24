@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "decentralized_marketplace_backend": {
+      "candid": "src/decentralized_marketplace_backend/decentralized_marketplace_backend.did",
+      "package": "decentralized_marketplace_backend",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
