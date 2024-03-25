@@ -5,7 +5,7 @@ use ic_stable_structures::memory_manager::{MemoryId, MemoryManager,VirtualMemory
 use candid::{Decode, Encode, Principal};
 use serde::de::value::Error;  
 use std::{borrow::Cow, cell::RefCell}; 
-use ic_cdk::{query, update}; 
+use ic_cdk::{pre_upgrade, query, update}; 
 
 type Memory = VirtualMemory<DefaultMemoryImpl>; 
 type IdCell = Cell<u64, Memory>; 
@@ -14,6 +14,14 @@ type IdCell = Cell<u64, Memory>;
 #[derive(candid::CandidType, Serialize, Deserialize, Default, Clone)] 
 struct Item {
     id: u64, 
+    name: String, 
+    description: String, 
+    amount: u64
+} 
+
+// New Item struct 
+#[derive(candid::CandidType, Serialize, Deserialize, Default, Clone)] 
+struct NewItem {
     name: String, 
     description: String, 
     amount: u64
@@ -52,13 +60,23 @@ thread_local! {
     )); 
 }
 
+// THIS IS NOT WORKING 
+#[pre_upgrade]
+fn pre_upgrade() {
+    ITEM_STORAGE.with(|service| {
+        *service.borrow_mut() = StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1)))
+        );
+    });
+}
+
 // #[derive(candid::CandidType, Deserialize, Serialize)]
 // enum Error {
 //     NotFound { msg: String },
 // }
 
 #[update] 
-fn list_item(item: Item) -> Option<Item> {
+fn list_item(new_item: NewItem) -> Option<Item> {
     let id = ID_COUNTER
         .with(|counter| {
             let current_value = *counter.borrow().get(); 
@@ -68,9 +86,9 @@ fn list_item(item: Item) -> Option<Item> {
 
     let item = Item {
         id, 
-        name: item.name, 
-        description: item.description, 
-        amount: item.amount
+        name: new_item.name, 
+        description: new_item.description, 
+        amount: new_item.amount
     }; 
     
     ITEM_STORAGE.with(|service| service.borrow_mut().insert(id, item.clone())); 
