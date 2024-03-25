@@ -77,3 +77,11 @@ fn list_item(item: Item) -> Option<Item> {
     Some(item)
 
 }
+
+#[query] 
+fn return_items() -> Vec<Item> {
+    ITEM_STORAGE.with(|service| service.borrow().iter().map(|(_, item) | item.clone()).collect())
+}
+
+// Export Candid interface
+ic_cdk::export_candid!();
