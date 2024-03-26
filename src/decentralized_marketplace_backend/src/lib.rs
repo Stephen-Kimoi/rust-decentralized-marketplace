@@ -2,22 +2,37 @@
 extern crate serde;
 use ic_stable_structures::{BoundedStorable, Cell, DefaultMemoryImpl, StableBTreeMap, Storable}; 
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager,VirtualMemory}; 
-use candid::{Decode, Encode, Principal};
-use serde::de::value::Error;  
+use candid::{Decode, Encode, Principal };
+// use std::collections::BTreeMap;
+// use serde::de::value::Error;  
 use std::{borrow::Cow, cell::RefCell}; 
 use ic_cdk::{pre_upgrade, query, update}; 
 
 type Memory = VirtualMemory<DefaultMemoryImpl>; 
 type IdCell = Cell<u64, Memory>; 
+// type ItemStore = BTreeMap<Principal, Item>; 
 
 // Items Struct 
-#[derive(candid::CandidType, Serialize, Deserialize, Default, Clone)] 
+#[derive(candid::CandidType, Serialize, Deserialize, Clone )] 
 struct Item {
     id: u64, 
     name: String, 
     description: String, 
-    amount: u64
+    amount: u64,
+    principal_id: Principal
 } 
+
+impl Default for Item {
+   fn default() -> Self {
+       Self {
+        id: 0, 
+        name: String::new(), 
+        description: String::new(), 
+        amount: 0, 
+        principal_id: Principal::anonymous(), 
+       }
+   }   
+}
 
 // New Item struct 
 #[derive(candid::CandidType, Serialize, Deserialize, Default, Clone)] 
@@ -44,7 +59,6 @@ impl BoundedStorable for Item {
 }
 
 thread_local! {
-
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(
         MemoryManager::init(DefaultMemoryImpl::default())
     ); 
@@ -58,6 +72,8 @@ thread_local! {
     RefCell::new(StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1)))
     )); 
+
+    // static ITEMS: RefCell<ItemStore> = RefCell::default(); 
 }
 
 // THIS IS NOT WORKING 
@@ -83,17 +99,18 @@ fn list_item(new_item: NewItem) -> Option<Item> {
             counter.borrow_mut().set(current_value + 1)
         }) 
         .expect("Cannot increament ID counter"); 
+    let seller_principal_id = ic_cdk::caller(); 
 
     let item = Item {
         id, 
         name: new_item.name, 
         description: new_item.description, 
-        amount: new_item.amount
+        amount: new_item.amount,  
+        principal_id: seller_principal_id 
     }; 
     
     ITEM_STORAGE.with(|service| service.borrow_mut().insert(id, item.clone())); 
     Some(item)
-
 }
 
 #[query] 

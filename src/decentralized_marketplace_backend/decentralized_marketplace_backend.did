@@ -2,6 +2,7 @@ type Item = record {
   id : nat64;
   name : text;
   description : text;
+  principal_id : principal;
   amount : nat64;
 };
 type NewItem = record { name : text; description : text; amount : nat64 };
