@@ -151,5 +151,32 @@ fn delete_item(id: u64) -> Result<(), Error> {
     })
 }
 
+// Function for updating listed item 
+#[update]
+fn update_item(id: u64, new_name: String, new_description: String, new_amount: u64) -> Result<(), Error> {
+   let caller = ic_cdk::caller(); 
+   
+    match _get_item(&id) {
+       Some(mut item) => {
+        if item.principal_id == caller {
+            item.name = new_name; 
+            item.description = new_description; 
+            item.amount = new_amount; 
+            Ok(())
+        } else {
+            Err(Error::Unauthorized { msg: format!("Caller is not owner of item with ID {}", id) })
+        }
+       }
+       None => Err(Error::NotFound { msg: format!("Item with ID {} could not be found!", id) })
+    }
+    
+}
+
+// Helper function to get item ID 
+fn _get_item(item_id: &u64) -> Option<Item> {
+    ITEM_STORAGE.with(|service| service.borrow().get(item_id))
+}
+
+
 // Export Candid interface
 ic_cdk::export_candid!();
