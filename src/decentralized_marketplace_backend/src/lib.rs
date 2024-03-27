@@ -135,11 +135,18 @@ fn return_items() -> Vec<Item> {
 // Function for deleting the listed item 
 #[update]
 fn delete_item(id: u64) -> Result<(), Error> {
+    let caller = ic_cdk::caller(); 
     ITEM_STORAGE.with(|storage| {
-        if storage.borrow_mut().remove(&id).is_some() {
-            Ok(())
+        let mut storage = storage.borrow_mut(); 
+        if let Some(item) = storage.get(&id) {
+            if item.principal_id == caller {
+                storage.remove(&id); 
+                Ok(())
+            } else {
+                Err(Error::Unauthorized { msg: format!("Caller is not the owner of item with ID {}", id), })
+            }
         } else {
-            Err(Error::NotFound { msg: format!("Item with ID {} not found!", id), })
+            Err(Error::NotFound { msg: format!("Item with ID {} is not found!", id), })
         }
     })
 }
