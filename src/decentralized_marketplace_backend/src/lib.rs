@@ -89,18 +89,18 @@ fn pre_upgrade() {
 }
 
 // For errors 
-
 #[derive(candid::CandidType, Deserialize, Serialize)]
 enum Error {
     NotFound { msg: String },
     FieldEmpty { msg: String }, 
-    Sold { msg: String } 
+    Sold { msg: String }, 
+    Unauthorized { msg: String }
 }
 
 // Function for listing item
 #[update] 
 fn list_item(new_item: NewItem) -> Result<Item, Error> {
-    
+
     if new_item.name.is_empty() || new_item.description.is_empty() || new_item.amount == 0 {
         return Err(Error::FieldEmpty { msg: "Fill in all required fields!".to_string(), }); 
     }
@@ -130,6 +130,18 @@ fn list_item(new_item: NewItem) -> Result<Item, Error> {
 #[query] 
 fn return_items() -> Vec<Item> {
     ITEM_STORAGE.with(|service| service.borrow().iter().map(|(_, item) | item.clone()).collect())
+}
+
+// Function for deleting the listed item 
+#[update]
+fn delete_item(id: u64) -> Result<(), Error> {
+    ITEM_STORAGE.with(|storage| {
+        if storage.borrow_mut().remove(&id).is_some() {
+            Ok(())
+        } else {
+            Err(Error::NotFound { msg: format!("Item with ID {} not found!", id), })
+        }
+    })
 }
 
 // Export Candid interface

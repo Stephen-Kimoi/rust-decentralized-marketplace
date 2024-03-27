@@ -12,8 +12,10 @@ type Item = record {
   amount : nat64;
 };
 type NewItem = record { name : text; description : text; amount : nat64 };
-type Result = variant { Ok : Item; Err : Error };
+type Result = variant { Ok; Err : Error };
+type Result_1 = variant { Ok : Item; Err : Error };
 service : {
-  list_item : (NewItem) -> (Result);
+  delete_item : (nat64) -> (Result);
+  list_item : (NewItem) -> (Result_1);
   return_items : () -> (vec Item) query;
 }
