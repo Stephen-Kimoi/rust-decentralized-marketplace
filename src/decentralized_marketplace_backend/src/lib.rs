@@ -19,7 +19,8 @@ struct Item {
     name: String, 
     description: String, 
     amount: u64,
-    principal_id: Principal
+    principal_id: Principal, 
+    sold: bool
 } 
 
 impl Default for Item {
@@ -30,6 +31,7 @@ impl Default for Item {
         description: String::new(), 
         amount: 0, 
         principal_id: Principal::anonymous(), 
+        sold: false
        }
    }   
 }
@@ -76,7 +78,7 @@ thread_local! {
     // static ITEMS: RefCell<ItemStore> = RefCell::default(); 
 }
 
-// THIS IS NOT WORKING 
+// For erasing the canister's data when re-deploying
 #[pre_upgrade]
 fn pre_upgrade() {
     ITEM_STORAGE.with(|service| {
@@ -86,13 +88,23 @@ fn pre_upgrade() {
     });
 }
 
-// #[derive(candid::CandidType, Deserialize, Serialize)]
-// enum Error {
-//     NotFound { msg: String },
-// }
+// For errors 
 
+#[derive(candid::CandidType, Deserialize, Serialize)]
+enum Error {
+    NotFound { msg: String },
+    FieldEmpty { msg: String }, 
+    Sold { msg: String } 
+}
+
+// Function for listing item
 #[update] 
-fn list_item(new_item: NewItem) -> Option<Item> {
+fn list_item(new_item: NewItem) -> Result<Item, Error> {
+    
+    if new_item.name.is_empty() || new_item.description.is_empty() || new_item.amount == 0 {
+        return Err(Error::FieldEmpty { msg: "Fill in all required fields!".to_string(), }); 
+    }
+
     let id = ID_COUNTER
         .with(|counter| {
             let current_value = *counter.borrow().get(); 
@@ -106,13 +118,15 @@ fn list_item(new_item: NewItem) -> Option<Item> {
         name: new_item.name, 
         description: new_item.description, 
         amount: new_item.amount,  
-        principal_id: seller_principal_id 
+        principal_id: seller_principal_id,
+        sold: false
     }; 
     
     ITEM_STORAGE.with(|service| service.borrow_mut().insert(id, item.clone())); 
-    Some(item)
+    Ok(item)
 }
 
+// Function for returning the items listed 
 #[query] 
 fn return_items() -> Vec<Item> {
     ITEM_STORAGE.with(|service| service.borrow().iter().map(|(_, item) | item.clone()).collect())

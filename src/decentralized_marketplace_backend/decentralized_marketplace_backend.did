@@ -1,12 +1,19 @@
+type Error = variant {
+  FieldEmpty : record { msg : text };
+  Sold : record { msg : text };
+  NotFound : record { msg : text };
+};
 type Item = record {
   id : nat64;
   name : text;
+  sold : bool;
   description : text;
   principal_id : principal;
   amount : nat64;
 };
 type NewItem = record { name : text; description : text; amount : nat64 };
+type Result = variant { Ok : Item; Err : Error };
 service : {
-  list_item : (NewItem) -> (opt Item);
+  list_item : (NewItem) -> (Result);
   return_items : () -> (vec Item) query;
 }
