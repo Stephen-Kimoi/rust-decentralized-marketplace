@@ -162,6 +162,8 @@ fn update_item(id: u64, new_name: String, new_description: String, new_amount: u
             item.name = new_name; 
             item.description = new_description; 
             item.amount = new_amount; 
+
+            ITEM_STORAGE.with(|service| service.borrow_mut().insert(id, item.clone())); 
             Ok(())
         } else {
             Err(Error::Unauthorized { msg: format!("Caller is not owner of item with ID {}", id) })
