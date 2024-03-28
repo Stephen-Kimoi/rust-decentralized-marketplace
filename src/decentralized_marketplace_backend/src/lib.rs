@@ -158,7 +158,8 @@ enum Error {
     FieldEmpty { msg: String }, 
     Sold { msg: String }, 
     Unauthorized { msg: String }, 
-    UserExists { msg: String }
+    UserExists { msg: String }, 
+    UserNotRegistered { msg: String }
 }
 
 // Function for registering users 
@@ -205,13 +206,23 @@ fn list_item(new_item: NewItem) -> Result<Item, Error> {
         return Err(Error::FieldEmpty { msg: "Fill in all required fields!".to_string(), }); 
     }
 
+    let seller_principal_id = ic_cdk::caller(); 
+
+    // Checking if seller is registered 
+    let is_seller_registered = USERS.with(|users| {
+        users.borrow().contains_key(&seller_principal_id)
+    }); 
+
+    if !is_seller_registered {
+        return Err(Error::UserNotRegistered { msg: format!("Seller has not registered!") })
+    }
+
     let id = ITEM_COUNTER
         .with(|counter| {
             let current_value = *counter.borrow().get(); 
             counter.borrow_mut().set(current_value + 1)
         }) 
         .expect("Cannot increament ID counter"); 
-    let seller_principal_id = ic_cdk::caller(); 
 
     let item = Item {
         id, 

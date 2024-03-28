@@ -2,6 +2,7 @@ type Error = variant {
   FieldEmpty : record { msg : text };
   Sold : record { msg : text };
   NotFound : record { msg : text };
+  UserNotRegistered : record { msg : text };
   Unauthorized : record { msg : text };
   UserExists : record { msg : text };
 };
