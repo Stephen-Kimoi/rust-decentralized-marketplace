@@ -1,5 +1,6 @@
 #[macro_use] 
 extern crate serde;
+// use candid::types::principal;
 use ic_stable_structures::{BoundedStorable, Cell, DefaultMemoryImpl, StableBTreeMap, Storable}; 
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager,VirtualMemory}; 
 use candid::{CandidType, Decode, Encode, Principal };
@@ -283,6 +284,31 @@ fn update_item(id: u64, new_name: String, new_description: String, new_amount: u
        None => Err(Error::NotFound { msg: format!("Item with ID {} could not be found!", id) })
     }
     
+}
+
+// Function for returning seller and the items they've listed 
+#[query] 
+fn get_sellers_and_items() -> Vec<(String, String, Principal, Vec<Item>)> {
+    let mut result = Vec::new(); 
+
+    USERS.with(|users| {
+        let users_borrowed = users.borrow(); 
+
+        for (principal_id, user) in users_borrowed.iter() {
+            let items = ITEM_STORAGE.with(|items| {
+                let items_borrowed = items.borrow(); 
+
+                items_borrowed.iter() 
+                  .filter(|(_, item)| item.principal_id == *principal_id) 
+                  .map(|(_, item)| item.clone())
+                  .collect::<Vec<Item>>()
+            }); 
+
+            result.push((user.username.clone(), user.email.clone(), *principal_id, items)); 
+        }
+    }); 
+
+    result 
 }
 
 // Helper function to get item ID 
