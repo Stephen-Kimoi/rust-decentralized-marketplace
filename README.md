@@ -1,61 +1,88 @@
-# decentralized_marketplace
+# Decentralized Marketplace 
 
-Welcome to your new decentralized_marketplace project and to the internet computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+This is a decentralzied marketplace canister smart contract deployed on the internet computer protocol. 
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+The platform utilizes ICP's robustness and efficiency to ensure secure and reliable operations 
 
-To learn more before you start working with decentralized_marketplace, see the following documentation available online:
+The marketplace contains the following main functionalities: 
+1. Registering of sellers and buyers 
+2. Listing of items in the marketplace 
+3. Buying of items from the marketplace 
+4. Updating items listed in the marketplace 
+5. Deleting items that you no longer want to sell in the marketplace 
+6. Getting the specific sellers' details of the items listed in the marketplace 
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Rust Canister Development Guide](https://internetcomputer.org/docs/current/developer-docs/backend/rust/)
-- [ic-cdk](https://docs.rs/ic-cdk)
-- [ic-cdk-macros](https://docs.rs/ic-cdk-macros)
-- [Candid Introduction](https://internetcomputer.org/docs/current/developer-docs/backend/candid/)
-
-If you want to start working on your project right away, you might want to try the following commands:
-
-```bash
-cd decentralized_marketplace/
-dfx help
-dfx canister --help
+## Main Funcionalities: 
+### 1. User Management 
+#### 1.1 Register User: 
+_Functionality:_ Allows users to register with the platform, providing essential information such as username, email, and role.
+```
+register_user()
 ```
 
-## Running the project locally
+##### Usage: 
+- new_user: New user details including username, email, and role.
+- Returns a 'User' struct upon successful registration or an error if any field is empty or if the user already exists.
 
-If you want to test your project locally, you can use the following commands:
-
-```bash
-# Starts the replica, running in the background
-dfx start --background
-
-# Deploys your canisters to the replica and generates your candid interface
-dfx deploy
+#### 1.2 Get sellers and their items: 
+_Functionality:_ Retrieves sellers along with the items they have listed.
+```
+get_sellers_and_items() 
 ```
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
+##### Usage: 
+- Returns a vector containing tuples of seller information (username, email, principal_id) and a vector of items listed by the seller. 
 
-If you have made changes to your backend canister, you can generate a new candid interface with
+### 2. Item Management: 
+#### 2.1 List Item: 
+_Functionality:_ Allows sellers to list items for sale, providing item details such as name, description, and amount.
 
-```bash
-npm run generate
+```
+list_item()
+```
+##### Usage: 
+- new_item: Takes in details of the new item including name, description, and amount.
+- Returns the listed Item upon successful listing or an error if any field is empty or if the seller is not registered.
+
+#### 2.2 Return Items: 
+_Functionality:_ Retrieves all items listed on the platform.
+```
+return_items()  
 ```
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
+##### Usage: 
+- Returns a vector containing all items listed on the platform. 
 
-If you are making frontend changes, you can start a development server with
+#### 2.3 Delete Item: 
+_Functionality:_ Allows item owners to delete their listed items.
 
-```bash
-npm start
 ```
+delete_item()
+``` 
+##### Usage:  
+- id: takes ID of the item to be deleted.
+- Returns success upon item deletion or an error if the item is not found or if the caller is not the owner of the item.
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+#### 2.4 Update Item: 
+_Functionality:_ Enables item owners to update the details of their listed items.
 
-### Note on frontend environment variables
+##### Usage:  
+- id: takes in ID of the item to be updated.
+- new_name, new_description, new_amount: Updated details of the item.
+- Returns success upon item update or an error if the item is not found or if the caller is not the owner of the item.
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
+## Other functionalities: 
+- Error Handling: The platform employs an error enum Error to handle various error scenarios such as field emptiness, unauthorized access, item not found, etc.
 
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+- Serialization and Deserialization: The platform provides serialization and deserialization implementations for seamless storage and transmission of User and Item structs.
+
+- Memory Management: Utilizes a MemoryManager for efficient memory handling, ensuring optimal performance within the distributed environment.
+
+- Thread Safety: The platform employs thread-local storage for managing critical resources such as memory, item counters, and user data, ensuring thread safety and concurrent access.
+
+## Conclusion: 
+Feel free to create a pull request if you have any suggestions/changes
+
+
+
+
